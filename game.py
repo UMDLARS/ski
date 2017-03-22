@@ -11,7 +11,7 @@ from CYLGame import PanelBorder
 DEBUG = False
 
 
-class ROBOTS(Game):
+class Ski(Game):
     MAP_WIDTH = 60
     MAP_HEIGHT = 30
     SCREEN_WIDTH = 60
@@ -20,16 +20,17 @@ class ROBOTS(Game):
     MAX_MSG_LEN = SCREEN_WIDTH - MSG_START - 1
     CHAR_WIDTH = 16
     CHAR_HEIGHT = 16
-    GAME_TITLE = "ROBOTS"
+    GAME_TITLE = "Ski"
     CHAR_SET = "terminal16x16_gs_ro.png"
 
     SENSE_DIST = 20
 
-    STAIR_DESCENT_RESPONSES = ["Maybe there's an exit this way!", "I wonder what's down here?", "Gotta escape these bots!", "Is this the last floor?", "What's this way?"]
+    LEVELUP_RESPONSES = ["The forest seems to be getting more dense!", "Are there more trees here or what?", "Watch out!", "Better pay attention!"]
 
     ROBOT_CRASH_RESPONSES = ["**CRASH!!!***", "KABL00IE!", "*SMASH* CLATTER! *TINKLE*", "KA-B00M!", "!!B00M!!", "BING B0NG CLANK!"]
 
-    NUM_OF_BOTS_START = 4
+    NUM_OF_ROCKS_START = 30
+    NUM_OF_TREES_START = 30
     MAX_TURNS = 300
 
     PLAYER = '@'
@@ -37,6 +38,8 @@ class ROBOTS(Game):
     WRECKAGE = '<'
     EMPTY = ' '
     ROBOT = 'O'
+    ROCK = chr(15)
+    TREE = chr(30)
 
     def __init__(self, random):
         self.random = random
@@ -53,8 +56,8 @@ class ROBOTS(Game):
         self.msg_panel = MessagePanel(self.MSG_START, self.MAP_HEIGHT + 1, self.SCREEN_WIDTH - self.MSG_START, 5)
         self.status_panel = StatusPanel(0, self.MAP_HEIGHT + 1, self.MSG_START, 5)
         self.panels = [self.msg_panel, self.status_panel]
-        self.msg_panel.add("Welcome to R0B0TS!!!")
-        self.msg_panel.add("Descend stairs while avoiding robots!")
+        self.msg_panel.add("Velkommen to Robot Backcountry Skiing!")
+        self.msg_panel.add("Move left and right! Don't crash!")
 
         self.__create_map()
 
@@ -64,7 +67,8 @@ class ROBOTS(Game):
 
         self.panels += [self.map]
         self.place_stairs(1)
-        self.place_bots(self.NUM_OF_BOTS_START * self.level)
+        self.place_objects(self.TREE, self.NUM_OF_ROCKS_START)
+        self.place_objects(self.ROCK, self.NUM_OF_TREES_START)
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
@@ -113,9 +117,33 @@ class ROBOTS(Game):
                 self.map[(x, y)] = char
                 placed_objects += 1
 
+    def make_new_row(self, level):
+        for x in range(self.MAP_WIDTH):
+            here = self.random.randint(0, 9)
+            if here == 0:
+                which = self.random.randint(0,1)
+                if which == 0:
+                    self.map[(x, 1)] = self.ROCK
+                else:
+                    self.map[(x, 1)] = self.TREE
+
+    def shift_map(self):
+        # shift all rows down
+        for y in reversed(range(self.MAP_HEIGHT - 1)):
+            for x in range(self.MAP_WIDTH):
+                self.map[(x, y+1)] = self.map[(x, y)]
+                self.map[(x, y)] = self.EMPTY
+
+        self.make_new_row(self.level)
+
+
+
     def handle_key(self, key):
         self.turns += 1
         self.score += 1
+
+        if self.turns % 30 == 0:
+            self.level += 1
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
         if key == "w":
@@ -150,11 +178,14 @@ class ROBOTS(Game):
         self.player_pos[0] %= self.MAP_WIDTH
         self.player_pos[1] %= self.MAP_HEIGHT
 
+        # shift the map
+        self.shift_map()
+
         # if player gets to the stairs, the other robots don't get a
         # chance to take their turn
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.STAIRS:
             self.score += self.level * 10
-            self.msg_panel += [self.random.choice(list(set(self.STAIR_DESCENT_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            self.msg_panel += [self.random.choice(list(set(self.LEVELUP_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             self.level += 1
 
             # initialize new map
@@ -418,4 +449,4 @@ class ROBOTS(Game):
 
 if __name__ == '__main__':
     from CYLGame import run
-    run(ROBOTS)
+    run(Ski)
