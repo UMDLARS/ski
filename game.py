@@ -36,7 +36,7 @@ class Ski(Game):
     PLAYER = '@'
     STAIRS = '>'
     WRECKAGE = '<'
-    EMPTY = ' '
+    EMPTY = '\0'
     ROBOT = 'O'
     ROCK = chr(15)
     TREE = chr(30)
