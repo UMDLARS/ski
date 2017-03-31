@@ -27,28 +27,28 @@ class Ski(Game):
 
     LEVELUP_RESPONSES = ["The forest seems to be getting more dense!", "Are there more trees here or what?", "Watch out!", "Better pay attention!"]
 
-    ROBOT_CRASH_RESPONSES = ["**CRASH!!!***", "KABL00IE!", "*SMASH* CLATTER! *TINKLE*", "KA-B00M!", "!!B00M!!", "BING B0NG CLANK!"]
+    ROBOT_CRASH_RESPONSES = ["OOF!", "OWWWIE!", "THAT'S GONNA LEAVE A MARK!"]
 
     NUM_OF_ROCKS_START = 30
     NUM_OF_TREES_START = 30
+    NUM_OF_COINS_START = 1
+    NUM_OF_HEARTS_START = 1
     MAX_TURNS = 300
 
     PLAYER = '@'
-    STAIRS = '>'
-    WRECKAGE = '<'
     EMPTY = '\0'
-    ROBOT = 'O'
+    HEART = chr(3)
+    COIN = chr(4)
     ROCK = chr(15)
+    TRACKS = chr(29)
     TREE = chr(30)
+    JUMP = chr(31)
 
     def __init__(self, random):
         self.random = random
         self.running = True
-        self.touching_bot = False
-        self.touching_wreckage = False
-        centerx = self.MAP_WIDTH / 2
-        centery = self.MAP_HEIGHT / 2
-        self.player_pos = [centerx, centery]
+        self.hp = 3
+        self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
         self.score = 0
         self.objects = []
         self.turns = 0
@@ -66,9 +66,10 @@ class Ski(Game):
                             border=PanelBorder.create(bottom="-"))
 
         self.panels += [self.map]
-        self.place_stairs(1)
         self.place_objects(self.TREE, self.NUM_OF_ROCKS_START)
         self.place_objects(self.ROCK, self.NUM_OF_TREES_START)
+        self.place_objects(self.COIN, self.NUM_OF_COINS_START)
+        self.place_objects(self.HEART, self.NUM_OF_HEARTS_START)
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
@@ -101,9 +102,6 @@ class Ski(Game):
         dists.sort()
         return dists[0]
 
-    def place_stairs(self, count):
-        self.place_objects(self.STAIRS, count)
-
     def place_bots(self, count):
         self.place_objects(self.ROBOT, count)
 
@@ -135,6 +133,7 @@ class Ski(Game):
                 self.map[(x, y)] = self.EMPTY
 
         self.make_new_row(self.level)
+        self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
 
 
 
@@ -166,82 +165,17 @@ class Ski(Game):
 
         # shift the map
         self.shift_map()
+        
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
+            self.hp -= 2
+            self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-        # if player gets to the stairs, the other robots don't get a
-        # chance to take their turn
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.STAIRS:
-            self.score += self.level * 10
-            self.msg_panel += [self.random.choice(list(set(self.LEVELUP_RESPONSES) - set(self.msg_panel.get_current_messages())))]
-            self.level += 1
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
+            self.hp -= 1
+            self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-            # initialize new map
-            self.__create_map()
-
-        # if a bot is touching a player, then set touching_bot to TRUE
-        # and also update the map to show the attacking robot
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
-            self.touching_bot = True
-
-        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.WRECKAGE:
-            # if a player is touching wreckage, set touching_wreckage to
-            # true
-            self.touching_wreckage = True
-        else:
-            # in the previous two cases, the player died and we don't
-            # want to draw the "live" player over the object that killed
-            # them. In *this* case, the move was a success, so we want
-            # to draw the player onto the spot.
-            self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
-
-        # go through the map and calculate moves for every robot based
-        # on player's position
-
-        robots = self.map.get_all_pos(self.ROBOT)
-
-        # sort robots list by closeness to player -- fixes issue #1
-        robots = sorted(robots, key=lambda x: self.shortest_distance_and_direction(x[0], x[1], self.player_pos[0], self.player_pos[1])[0])
-
-        # move each robot once
-        for x, y in robots:
-            if DEBUG:
-                print("found robot at (%d,%d)" % (x, y))
-            if self.map[(x, y)] == self.WRECKAGE:
-                # this robot got wrecked before it could move...
-                # next robot please.
-                continue
-
-            # find the direction towards the player
-            x_dir, y_dir = self.find_closest_player(x, y)
-
-            if DEBUG:
-                print("\tI'm going to move (%d,%d) towards player" % (x_dir, y_dir))
-
-            # get new location modulo map size
-            newpos = ((x + x_dir) % self.MAP_WIDTH, (y + y_dir) % self.MAP_HEIGHT)
-
-            if self.map[newpos] == self.STAIRS:
-                # robot won't step on stairs (7 cycles bad robot luck)
-                continue
-
-            # erase robot in prep to move locations
-            self.map[(x, y)] = self.EMPTY
-
-            # draw the new robot into position and check for collisions
-            if self.map[newpos] == self.ROBOT or self.map[newpos] == self.WRECKAGE:
-                # already a robot here -- collision!
-                if DEBUG:
-                    print("collision with robot at (%s)!" % str(newpos))
-                self.map[newpos] = self.WRECKAGE
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
-                self.score += 10
-            else:
-                self.map[newpos] = self.ROBOT
-
-            # if a bot is touching a player, then set touching_bot to TRUE
-            # and also update the map to show the attacking robot
-            if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROBOT:
-                self.touching_bot = True
-                break
+        # draw player
+        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
 
         # vars should be gotten at the end of handle_turn, because vars
         # affect the *next* turn...
@@ -308,8 +242,7 @@ class Ski(Game):
     def get_vars_for_bot(self):
         bot_vars = {}
 
-        # get values for x_dir and y_dir to direct player towards stairs
-        x_dir, y_dir = self.find_closest_foo(self.player_pos[0], self.player_pos[1], self.STAIRS)
+        # get x_dir and y_dir to direct player towards COIN / HP
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
@@ -418,12 +351,9 @@ class Ski(Game):
         if self.turns >= self.MAX_TURNS:
             self.running = False
             self.msg_panel.add("You are out of moves.")
-        elif self.touching_bot:
+        elif self.hp == 0:
             self.running = False
-            self.msg_panel += ["A robot got you! :( "]
-        elif self.touching_wreckage:
-            self.running = False
-            self.msg_panel += ["You ran into a pile of junk! :("]
+            self.msg_panel += ["You sustained too much damage!"]
 
         if not self.running:
             self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
@@ -433,6 +363,7 @@ class Ski(Game):
         # Update Status
         self.status_panel["Score"] = self.score
         self.status_panel["Move"] = str(self.turns) + " of " + str(self.MAX_TURNS)
+        self.status_panel["HP"] = self.HEART * self.hp
 
         for panel in self.panels:
             panel.redraw(libtcod, console)
