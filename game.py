@@ -146,26 +146,12 @@ class Ski(Game):
             self.level += 1
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
-        if key == "w":
-            self.player_pos[1] -= 1
-        if key == "s":
-            self.player_pos[1] += 1
         if key == "a":
             self.player_pos[0] -= 1
         if key == "d":
             self.player_pos[0] += 1
-        if key == "q":
-            self.player_pos[1] -= 1
-            self.player_pos[0] -= 1
-        if key == "e":
-            self.player_pos[1] -= 1
-            self.player_pos[0] += 1
-        if key == "c":
-            self.player_pos[1] += 1
-            self.player_pos[0] += 1
-        if key == "z":
-            self.player_pos[1] += 1
-            self.player_pos[0] -= 1
+        if key == "w":
+            None
         if key == "t":
             self.msg_panel += ["TELEP0RT!"]
             self.player_pos[0] = self.random.randint(0, self.MAP_WIDTH - 1)
@@ -313,6 +299,11 @@ class Ski(Game):
             return foo_pos_dist[0][1]
         else:
             raise Exception("We can't find the foo you're looking for!")
+
+
+    def read_bot_state(self, state):
+        # state.get('foo','')
+        None
 
     def get_vars_for_bot(self):
         bot_vars = {}
