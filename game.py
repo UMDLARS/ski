@@ -33,6 +33,7 @@ class Ski(Game):
     NUM_OF_TREES_START = 30
     NUM_OF_COINS_START = 1
     NUM_OF_HEARTS_START = 1
+    NUM_OF_JUMPS_START = 1
     MAX_TURNS = 300
 
     PLAYER = '@'
@@ -47,6 +48,7 @@ class Ski(Game):
     def __init__(self, random):
         self.random = random
         self.running = True
+        self.flying = False
         self.hp = 3
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
         self.score = 0
@@ -70,6 +72,7 @@ class Ski(Game):
         self.place_objects(self.ROCK, self.NUM_OF_TREES_START)
         self.place_objects(self.COIN, self.NUM_OF_COINS_START)
         self.place_objects(self.HEART, self.NUM_OF_HEARTS_START)
+        self.place_objects(self.JUMP, self.NUM_OF_JUMPS_START)
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
@@ -152,9 +155,9 @@ class Ski(Game):
         if key == "w":
             None
         if key == "t":
-            self.msg_panel += ["TELEP0RT!"]
+            # horizontal-only teleporting code
+            self.msg_panel += ["TELEPORT!"]
             self.player_pos[0] = self.random.randint(0, self.MAP_WIDTH - 1)
-            self.player_pos[1] = self.random.randint(0, self.MAP_HEIGHT - 1)
 
         if key == "Q":
             self.running = False
@@ -351,7 +354,7 @@ class Ski(Game):
         if self.turns >= self.MAX_TURNS:
             self.running = False
             self.msg_panel.add("You are out of moves.")
-        elif self.hp == 0:
+        elif self.hp <= 0:
             self.running = False
             self.msg_panel += ["You sustained too much damage!"]
 
