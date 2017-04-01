@@ -27,7 +27,10 @@ class Ski(Game):
 
     LEVELUP_RESPONSES = ["The forest seems to be getting more dense!", "Are there more trees here or what?", "Watch out!", "Better pay attention!"]
 
-    ROBOT_CRASH_RESPONSES = ["OOF!", "OWWWIE!", "THAT'S GONNA LEAVE A MARK!"]
+    ROBOT_CRASH_RESPONSES = ["OOF!", "OWWWIE!", "THAT'S GONNA LEAVE A MARK!", "BONK!"]
+    ROBOT_HEART_RESPONSES = ["Wow, I feel a lot better!", "Shazam!", "That's the ticket!", "Yes!!!"]
+    ROBOT_COIN_RESPONSES = ["Cha-ching!", "Badabing!", "Bling! Bling!", "Wahoo!"]
+    ROBOT_FLYING_RESPONSES = ["I'm free as a bird now!", "It's a bird, it's a plane...", "Cowabunga!"]
 
     NUM_OF_ROCKS_START = 30
     NUM_OF_TREES_START = 30
@@ -35,6 +38,7 @@ class Ski(Game):
     NUM_OF_HEARTS_START = 1
     NUM_OF_JUMPS_START = 1
     MAX_TURNS = 300
+    MAX_FLYING = 10
 
     PLAYER = '@'
     EMPTY = '\0'
@@ -124,13 +128,20 @@ class Ski(Game):
 
     def make_new_row(self, level):
         for x in range(self.MAP_WIDTH):
-            here = self.random.randint(0, 9)
-            if here == 0:
-                which = self.random.randint(0,1)
+            here = self.random.randint(0, self.MAX_TURNS)
+            if here <= self.turns:
+                which = self.random.randint(0,4)
                 if which == 0:
                     self.map[(x, 1)] = self.ROCK
-                else:
+                elif which == 1:
                     self.map[(x, 1)] = self.TREE
+                elif which == 2:
+                    self.map[(x, 1)] = self.HEART
+                elif which == 3:
+                    self.map[(x, 1)] = self.COIN
+                elif which == 4:
+                    self.map[(x, 1)] = self.JUMP
+
 
     def shift_map(self):
         # shift all rows down
@@ -147,6 +158,10 @@ class Ski(Game):
     def handle_key(self, key):
         self.turns += 1
         self.score += 1
+        if self.flying > 0:
+            self.flying -= 1
+            self.msg_panel += ["In flight for " + str(self.flying) + " turns..."]
+
 
         if self.turns % 30 == 0:
             self.level += 1
@@ -173,13 +188,30 @@ class Ski(Game):
         # shift the map
         self.shift_map()
         
-        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
-            self.hp -= 2
-            self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+        if self.flying == 0:
+            # check for various types of collisions (good and bad)
+            if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
+                self.hp -= 2
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
-            self.hp -= 1
-            self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
+                self.hp -= 1
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
+                if self.hp < 10:
+                    self.hp += 1
+                    self.msg_panel += [self.random.choice(list(set(self.ROBOT_HEART_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                else:
+                    self.msg_panel += ["Your HP is already full!"]
+
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.COIN:
+                self.score += 25
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.JUMP:
+                self.flying += self.random.randint(2, self.MAX_FLYING)
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+
 
         # draw player
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
