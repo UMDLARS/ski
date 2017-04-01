@@ -48,7 +48,7 @@ class Ski(Game):
     def __init__(self, random):
         self.random = random
         self.running = True
-        self.flying = False
+        self.flying = 0 # set to some value and decrement (0 == on ground)
         self.hp = 3
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
         self.score = 0
@@ -108,13 +108,17 @@ class Ski(Game):
     def place_bots(self, count):
         self.place_objects(self.ROBOT, count)
 
-    def place_objects(self, char, count):
+    def place_objects(self, char, count, replace=False):
         placed_objects = 0
         while placed_objects < count:
             x = self.random.randint(0, self.MAP_WIDTH - 1)
             y = self.random.randint(0, self.MAP_HEIGHT - 1)
 
             if self.map[(x, y)] == self.EMPTY:
+                self.map[(x, y)] = char
+                placed_objects += 1
+            elif replace == True:
+                # we can replace objects that exist
                 self.map[(x, y)] = char
                 placed_objects += 1
 
