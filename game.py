@@ -161,6 +161,8 @@ class Ski(Game):
         if self.flying > 0:
             self.flying -= 1
             self.msg_panel += ["In flight for " + str(self.flying) + " turns..."]
+            if self.flying == 0:
+                self.msg_panel += ["Back on the ground!"]
 
 
         if self.turns % 30 == 0:
