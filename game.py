@@ -151,7 +151,9 @@ class Ski(Game):
                 self.map[(x, y)] = self.EMPTY
 
         self.make_new_row(self.level)
-        self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
+
+        if self.flying < 1:
+            self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
 
 
 
