@@ -48,10 +48,13 @@ class Ski(Game):
     TRACKS = chr(29)
     TREE = chr(30)
     JUMP = chr(31)
+    FLY = chr(2)
+    CRASH = chr(8)
 
     def __init__(self, random):
         self.random = random
         self.running = True
+        self.colliding = False
         self.flying = 0 # set to some value and decrement (0 == on ground)
         self.hp = 3
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
@@ -192,13 +195,17 @@ class Ski(Game):
         # shift the map
         self.shift_map()
         
+        self.colliding = False # reset colliding variable
+
         if self.flying == 0:
             # check for various types of collisions (good and bad)
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
+                self.colliding = True
                 self.hp -= 2
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
+                self.colliding = True
                 self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
@@ -218,7 +225,13 @@ class Ski(Game):
 
 
         # draw player
-        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+        if self.flying < 1:
+            if self.colliding:
+                self.map[(self.player_pos[0], self.player_pos[1])] = self.CRASH
+            else:
+                self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+        else:
+            self.map[(self.player_pos[0], self.player_pos[1])] = self.FLY
 
         # vars should be gotten at the end of handle_turn, because vars
         # affect the *next* turn...
