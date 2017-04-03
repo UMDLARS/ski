@@ -55,6 +55,7 @@ class Ski(Game):
         self.random = random
         self.running = True
         self.colliding = False
+        self.on_top_of = None # stores a map item we're "on top of"
         self.flying = 0 # set to some value and decrement (0 == on ground)
         self.hp = 3
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
@@ -155,7 +156,9 @@ class Ski(Game):
 
         self.make_new_row(self.level)
 
-        if self.flying < 1:
+        if self.on_top_of:
+            self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.on_top_of
+        elif self.flying < 1:
             self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
 
 
@@ -196,16 +199,19 @@ class Ski(Game):
         self.shift_map()
         
         self.colliding = False # reset colliding variable
+        self.on_top_of = None
 
         if self.flying == 0:
             # check for various types of collisions (good and bad)
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
                 self.colliding = True
+                self.on_top_of = self.ROCK
                 self.hp -= 2
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
                 self.colliding = True
+                self.on_top_of = self.TREE
                 self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
@@ -220,6 +226,7 @@ class Ski(Game):
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.JUMP:
+                self.on_top_of = self.JUMP
                 self.flying += self.random.randint(2, self.MAX_FLYING)
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
