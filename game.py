@@ -52,6 +52,7 @@ class Ski(Game):
     CRASH = chr(8)
 
     def __init__(self, random):
+        self.bot_state = {}
         self.random = random
         self.running = True
         self.colliding = False
@@ -159,7 +160,8 @@ class Ski(Game):
         if self.on_top_of:
             self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.on_top_of
         elif self.flying < 1:
-            self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
+            if self.map[(self.player_pos[0], self.player_pos[1] + 1)] == self.EMPTY:
+                self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
 
 
 
@@ -300,71 +302,25 @@ class Ski(Game):
 
     def read_bot_state(self, state):
         # state.get('foo','')
+        # need to get LP values for:
+        # s1x-s7x and s1y-s7y
         None
 
     def get_vars_for_bot(self):
         bot_vars = {}
+
 
         # get x_dir and y_dir to direct player towards COIN / HP
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
 
-        bot_vars = {"x_dir": x_dir_to_char[x_dir], "y_dir": y_dir_to_char[y_dir],
-                    "sense_n": 0, "sense_s": 0, "sense_e": 0, "sense_w": 0,
-                    "sense_ne": 0, "sense_nw": 0, "sense_se": 0, "sense_sw": 0,
-                    "junk_e": 0, "junk_w": 0, "junk_n": 0, "junk_s": 0,
-                    "junk_ne": 0, "junk_se": 0, "junk_sw": 0, "junk_se": 0,
-                    "numbots": 0, "level": 0}
+        bot_vars = {"jump_x": 0, "jump_y": 0, "hp_x": 0, "hp_y": 0,
+                "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
+                "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
 
-        # detect wreckage in the 8 movement directions:
-
-        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
-            bot_vars["junk_e"] = 1
-            if DEBUG:
-                print("junk to east")
-
-        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, self.player_pos[1])] == self.WRECKAGE:
-            bot_vars["junk_w"] = 1
-            if DEBUG:
-                print("junk to west")
-
-        if self.map[(self.player_pos[0], (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_n"] = 1
-            if DEBUG:
-                print("junk to north")
-
-        if self.map[(self.player_pos[0], (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_s"] = 1
-            if DEBUG:
-                print("junk to south")
-
-        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_ne"] = 1
-            if DEBUG:
-                print("junk to northeast")
-
-        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]-1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_nw"] = 1
-            if DEBUG:
-                print("junk to northwest")
-
-        if self.map[((self.player_pos[0]+1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_se"] = 1
-            if DEBUG:
-                print("junk to southeast")
-
-        if self.map[((self.player_pos[0]-1)%self.MAP_WIDTH, (self.player_pos[1]+1)%self.MAP_HEIGHT)] == self.WRECKAGE:
-            bot_vars["junk_sw"] = 1
-            if DEBUG:
-                print("junk to southwest")
-
-        robots = self.map.get_all_pos(self.ROBOT)
-
-        bot_vars["numbots"] = len(robots)
-
-        bot_vars["level"] = self.level
-
+        bot_vars['hp'] = self.hp
+        bot_vars['flying'] = self.flying
 
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
         y_dir_to_str = {-1: "n", 1: "s", 0: ""}
