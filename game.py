@@ -328,13 +328,29 @@ class Ski(Game):
                 "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
                 "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
 
-        print(self.sensor_coords)
+        if DEBUG:
+            print(self.sensor_coords)
+
+        # go through self.sensor_coords and retrieve the map item at the
+        # position relative to the player
+
+        for i in range(7):
+            if (i < len(self.sensor_coords)):
+                sensor = "s" + str(i + 1)
+                x_offset = self.sensor_coords[i][0]
+                y_offset = self.sensor_coords[i][1]
+
+                print((x_offset, y_offset))
+                bot_vars[sensor] = ord(self.map[(self.player_pos[0] + int(x_offset), self.player_pos[1] + int(y_offset))])
 
         bot_vars['hp'] = self.hp
         bot_vars['flying'] = self.flying
 
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
         y_dir_to_str = {-1: "n", 1: "s", 0: ""}
+
+        if DEBUG:
+            print(bot_vars)
 
         return bot_vars
 
@@ -351,12 +367,29 @@ class Ski(Game):
     def get_move_consts():
         consts = Game.get_move_consts()
         consts.update({"teleport": ord("t")})
+        consts.update({"heart": 3})
+        consts.update({"heart": 3})
+        consts.update({"coin": 4})
+        consts.update({"rock": 15})
+        consts.update({"spikes": 16})
+        consts.update({"tracks": 29})
+        consts.update({"tree": 30})
+        consts.update({"jump": 31})
+        consts.update({"house": 10})
         return consts
 
     @staticmethod
     def get_move_names():
         names = Game.get_move_names()
-        names.update({ord("t"): "Teleport"})
+        names.update({ord("t"): "teleport"})
+        names.update({3: "heart"})
+        names.update({4: "coin"})
+        names.update({15: "rock"})
+        names.update({16: "spikes"})
+        names.update({29: "tracks"})
+        names.update({30: "tree"})
+        names.update({31: "jump"})
+        names.update({10: "house"})
         return names
 
     def get_score(self):
