@@ -247,7 +247,7 @@ class Ski(Game):
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
 
-        bot_vars = {"jump_x": 0, "jump_y": 0, "hp_x": 0, "hp_y": 0,
+        bot_vars = {"jump_x": 0, "jump_y": 0, "heart_x": 0, "heart_y": 0,
                 "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
                 "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
 
