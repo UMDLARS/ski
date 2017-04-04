@@ -192,7 +192,8 @@ class Ski(Game):
             None
         if key == "t":
             # horizontal-only teleporting code
-            self.msg_panel += ["TELEPORT!"]
+            self.msg_panel += ["TELEPORT! (-1 HP)"]
+            self.hp -= 1
             self.player_pos[0] = self.random.randint(0, self.MAP_WIDTH - 1)
 
         if key == "Q":
@@ -345,6 +346,8 @@ class Ski(Game):
 
                 print((x_offset, y_offset))
                 bot_vars[sensor] = ord(self.map[(self.player_pos[0] + int(x_offset), self.player_pos[1] + int(y_offset))])
+                if bot_vars[sensor] == 64:
+                    bot_vars[sensor] = 0
 
         bot_vars['hp'] = self.hp
         bot_vars['flying'] = self.flying
@@ -375,6 +378,7 @@ class Ski(Game):
         consts.update({"coin": 4})
         consts.update({"rock": 15})
         consts.update({"spikes": 16})
+        consts.update({"snowman": 17})
         consts.update({"tracks": 29})
         consts.update({"tree": 30})
         consts.update({"jump": 31})
@@ -389,6 +393,7 @@ class Ski(Game):
         names.update({4: "coin"})
         names.update({15: "rock"})
         names.update({16: "spikes"})
+        names.update({17: "snowman"})
         names.update({29: "tracks"})
         names.update({30: "tree"})
         names.update({31: "jump"})
