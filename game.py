@@ -323,7 +323,7 @@ class Ski(Game):
         bot_vars = {}
 
         # get x_dir and y_dir to direct player towards COIN / HP
-        # self.map.get_x_y_dist_to_foo(player_pos, HEART)
+        # self.map.get_x_y_dist_to_foo(self.player_pos, self.HEART)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
@@ -332,8 +332,9 @@ class Ski(Game):
                 "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
                 "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
 
-        if DEBUG:
-            print(self.sensor_coords)
+        (bot_vars["heart_x"], bot_vars["heart_y"]) = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)
+        (bot_vars["jump_x"], bot_vars["jump_y"]) = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)
+        (bot_vars["coin_x"], bot_vars["coin_y"]) = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)
 
         # go through self.sensor_coords and retrieve the map item at the
         # position relative to the player
@@ -344,7 +345,6 @@ class Ski(Game):
                 x_offset = self.sensor_coords[i][0]
                 y_offset = self.sensor_coords[i][1]
 
-                print((x_offset, y_offset))
                 bot_vars[sensor] = ord(self.map[(self.player_pos[0] + int(x_offset), self.player_pos[1] + int(y_offset))])
                 if bot_vars[sensor] == 64:
                     bot_vars[sensor] = 0
