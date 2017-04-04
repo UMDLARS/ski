@@ -154,7 +154,9 @@ class Ski(Game):
 
     def shift_map(self):
         # shift all rows down
-        self.map.shift_all((0, 1))
+        dx = (self.MAP_WIDTH / 2) - self.player_pos[0]
+        self.map.shift_all((dx, 1), wrap_x=True)
+        self.player_pos[0] += dx
 
         self.make_new_row(self.level)
 
