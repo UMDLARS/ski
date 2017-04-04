@@ -35,6 +35,7 @@ class Ski(Game):
     NUM_OF_ROCKS_START = 30
     NUM_OF_TREES_START = 30
     NUM_OF_SPIKES_START = 30
+    NUM_OF_SNOWMAN_START = 30
     NUM_OF_COINS_START = 1
     NUM_OF_HEARTS_START = 1
     NUM_OF_JUMPS_START = 1
@@ -47,6 +48,7 @@ class Ski(Game):
     COIN = chr(4)
     ROCK = chr(15)
     SPIKE = chr(16)
+    SNOWMAN = chr(17)
     TRACKS = chr(29)
     TREE = chr(30)
     JUMP = chr(31)
@@ -84,7 +86,7 @@ class Ski(Game):
         self.panels += [self.map]
         self.place_objects(self.TREE, self.NUM_OF_ROCKS_START)
         self.place_objects(self.ROCK, self.NUM_OF_TREES_START)
-        self.place_objects(self.SPIKE, self.NUM_OF_SPIKES_START)
+        self.place_objects(self.SNOWMAN, self.NUM_OF_SNOWMAN_START)
         self.place_objects(self.COIN, self.NUM_OF_COINS_START)
         self.place_objects(self.HEART, self.NUM_OF_HEARTS_START)
         self.place_objects(self.JUMP, self.NUM_OF_JUMPS_START)
@@ -150,7 +152,7 @@ class Ski(Game):
                 elif which == 4:
                     self.map[(x, 1)] = self.JUMP
                 elif which == 5:
-                    self.map[(x, 1)] = self.SPIKE
+                    self.map[(x, 1)] = self.SNOWMAN
 
     def shift_map(self):
         # shift all rows down
@@ -208,19 +210,18 @@ class Ski(Game):
             if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
                 self.colliding = True
                 self.on_top_of = self.ROCK
-                self.hp -= 2
+                self.hp -= 10
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
                 self.colliding = True
                 self.on_top_of = self.TREE
-                self.hp -= 1
+                self.hp -= 2
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SPIKE:
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SNOWMAN:
                 self.colliding = True
-                self.on_top_of = self.SPIKE
-                self.hp -= 10
+                self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
