@@ -57,7 +57,6 @@ class Ski(Game):
     CRASH = chr(8)
     HOUSE = chr(10)
 
-
     def __init__(self, random):
         self.sensor_coords = [] # variables for adjustable sensors from LP
         self.random = random
@@ -94,34 +93,6 @@ class Ski(Game):
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
 
-    def shortest_distance_between(self, x1, y1, x2, y2):
-        dists = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                a_x, a_y = x1 + (self.MAP_WIDTH * i), y1 + (self.MAP_HEIGHT * j)
-                d_x, d_y = math.abs(a_x - x2), math.abs(a_y - y2)
-                dists += [max(d_x, d_y)]
-        return min(dists)
-
-    def shortest_distance_and_direction(self, x1, y1, x2, y2):
-        dists = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                a_x, a_y = x1 + (self.MAP_WIDTH * i), y1 + (self.MAP_HEIGHT * j)
-                d_x, d_y = abs(a_x - x2), abs(a_y - y2)
-                direction = [a_x - x2, a_y - y2]
-                if direction[0] > 0:
-                    direction[0] = 1
-                elif direction[0] < 0:
-                    direction[0] = -1
-                if direction[1] > 0:
-                    direction[1] = 1
-                elif direction[1] < 0:
-                    direction[1] = -1
-                dists += [(max(d_x, d_y), direction)]
-        dists.sort()
-        return dists[0]
-
     def place_objects(self, char, count, replace=False):
         placed_objects = 0
         while placed_objects < count:
@@ -131,7 +102,7 @@ class Ski(Game):
             if self.map[(x, y)] == self.EMPTY:
                 self.map[(x, y)] = char
                 placed_objects += 1
-            elif replace == True:
+            elif replace:
                 # we can replace objects that exist
                 self.map[(x, y)] = char
                 placed_objects += 1
@@ -189,7 +160,7 @@ class Ski(Game):
         if key == "d":
             self.player_pos[0] += 1
         if key == "w":
-            None
+            pass
         if key == "t":
             # horizontal-only teleporting code
             self.msg_panel += ["TELEPORT! (-1 HP)"]
@@ -259,55 +230,6 @@ class Ski(Game):
     def is_running(self):
         return self.running
 
-    # find the closest thing (foo) in the map relative to the given
-    # x and y parameter (useful for finding stairs, players, etc.)
-    def find_closest_foo(self, x, y, foo):
-        foo_pos_dist = []
-        for pos in self.map.get_all_pos(foo):
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    a_x, a_y = pos[0] + (self.SCREEN_WIDTH * i), pos[1] + (self.SCREEN_HEIGHT * j)
-                    dist = math.sqrt((a_x - x)**2 + (a_y - y)**2)
-                    direction = [a_x - x, a_y - y]
-                    if direction[0] > 0:
-                        direction[0] = 1
-                    elif direction[0] < 0:
-                        direction[0] = -1
-                    if direction[1] > 0:
-                        direction[1] = 1
-                    elif direction[1] < 0:
-                        direction[1] = -1
-                    foo_pos_dist += [(dist, direction)]
-
-        foo_pos_dist.sort()
-        if len(foo_pos_dist) > 0:
-            return foo_pos_dist[0][1]
-        else:
-            raise Exception("We can't find the foo you're looking for!")
-
-    def find_closest_player(self, x, y):
-        foo_pos_dist = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                a_x, a_y = self.player_pos[0] + (self.SCREEN_WIDTH * i), self.player_pos[1] + (self.SCREEN_HEIGHT * j)
-                dist = math.sqrt((a_x - x)**2 + (a_y - y)**2)
-                direction = [a_x - x, a_y - y]
-                if direction[0] > 0:
-                    direction[0] = 1
-                elif direction[0] < 0:
-                    direction[0] = -1
-                if direction[1] > 0:
-                    direction[1] = 1
-                elif direction[1] < 0:
-                    direction[1] = -1
-                foo_pos_dist += [(dist, direction)]
-
-        foo_pos_dist.sort()
-        if len(foo_pos_dist) > 0:
-            return foo_pos_dist[0][1]
-        else:
-            raise Exception("We can't find the foo you're looking for!")
-
     def read_bot_state(self, state):
         # state.get('foo','') <-- set this to a default value that makes
         # sense
@@ -323,7 +245,7 @@ class Ski(Game):
         bot_vars = {}
 
         # get x_dir and y_dir to direct player towards COIN / HP
-        # self.map.get_x_y_dist_to_foo(player_pos, HEART)
+        self.map.get_x_y_dist_to_foo((self.player_pos[0], self.player_pos[1]), self.HEART)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
