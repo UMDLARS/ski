@@ -120,9 +120,6 @@ class Ski(Game):
         dists.sort()
         return dists[0]
 
-    def place_bots(self, count):
-        self.place_objects(self.ROBOT, count)
-
     def place_objects(self, char, count, replace=False):
         placed_objects = 0
         while placed_objects < count:
@@ -155,13 +152,9 @@ class Ski(Game):
                 elif which == 5:
                     self.map[(x, 1)] = self.SPIKE
 
-
     def shift_map(self):
         # shift all rows down
-        for y in reversed(range(self.MAP_HEIGHT - 1)):
-            for x in range(self.MAP_WIDTH):
-                self.map[(x, y+1)] = self.map[(x, y)]
-                self.map[(x, y)] = self.EMPTY
+        self.map.shift_all((0, 1))
 
         self.make_new_row(self.level)
 
@@ -171,8 +164,6 @@ class Ski(Game):
             if self.map[(self.player_pos[0], self.player_pos[1] + 1)] == self.EMPTY:
                 self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
 
-
-
     def handle_key(self, key):
         self.turns += 1
         self.score += 1
@@ -181,7 +172,6 @@ class Ski(Game):
             self.msg_panel += ["In flight for " + str(self.flying) + " turns..."]
             if self.flying == 0:
                 self.msg_panel += ["Back on the ground!"]
-
 
         if self.turns % 30 == 0:
             self.level += 1
@@ -246,7 +236,6 @@ class Ski(Game):
                 self.on_top_of = self.JUMP
                 self.flying += self.random.randint(2, self.MAX_FLYING)
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
-
 
         # draw player
         if self.flying < 1:
@@ -315,7 +304,6 @@ class Ski(Game):
         else:
             raise Exception("We can't find the foo you're looking for!")
 
-
     def read_bot_state(self, state):
         # state.get('foo','') <-- set this to a default value that makes
         # sense
@@ -330,8 +318,8 @@ class Ski(Game):
     def get_vars_for_bot(self):
         bot_vars = {}
 
-
         # get x_dir and y_dir to direct player towards COIN / HP
+        # self.map.get_x_y_dist_to_foo(player_pos, HEART)
 
         x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
         y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
