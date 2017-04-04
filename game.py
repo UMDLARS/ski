@@ -34,6 +34,7 @@ class Ski(Game):
 
     NUM_OF_ROCKS_START = 30
     NUM_OF_TREES_START = 30
+    NUM_OF_SPIKES_START = 30
     NUM_OF_COINS_START = 1
     NUM_OF_HEARTS_START = 1
     NUM_OF_JUMPS_START = 1
@@ -45,14 +46,18 @@ class Ski(Game):
     HEART = chr(3)
     COIN = chr(4)
     ROCK = chr(15)
+    SPIKE = chr(16)
     TRACKS = chr(29)
     TREE = chr(30)
     JUMP = chr(31)
+    DEAD = chr(1)
     FLY = chr(2)
     CRASH = chr(8)
+    HOUSE = chr(10)
+
 
     def __init__(self, random):
-        self.bot_state = {}
+        self.sensor_coords = [] # variables for adjustable sensors from LP
         self.random = random
         self.running = True
         self.colliding = False
@@ -79,6 +84,7 @@ class Ski(Game):
         self.panels += [self.map]
         self.place_objects(self.TREE, self.NUM_OF_ROCKS_START)
         self.place_objects(self.ROCK, self.NUM_OF_TREES_START)
+        self.place_objects(self.SPIKE, self.NUM_OF_SPIKES_START)
         self.place_objects(self.COIN, self.NUM_OF_COINS_START)
         self.place_objects(self.HEART, self.NUM_OF_HEARTS_START)
         self.place_objects(self.JUMP, self.NUM_OF_JUMPS_START)
@@ -135,7 +141,7 @@ class Ski(Game):
         for x in range(self.MAP_WIDTH):
             here = self.random.randint(0, self.MAX_TURNS)
             if here <= self.turns:
-                which = self.random.randint(0,4)
+                which = self.random.randint(0,5)
                 if which == 0:
                     self.map[(x, 1)] = self.ROCK
                 elif which == 1:
@@ -146,6 +152,8 @@ class Ski(Game):
                     self.map[(x, 1)] = self.COIN
                 elif which == 4:
                     self.map[(x, 1)] = self.JUMP
+                elif which == 5:
+                    self.map[(x, 1)] = self.SPIKE
 
 
     def shift_map(self):
@@ -216,6 +224,13 @@ class Ski(Game):
                 self.on_top_of = self.TREE
                 self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+
+            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SPIKE:
+                self.colliding = True
+                self.on_top_of = self.SPIKE
+                self.hp -= 10
+                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+
             elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
                 if self.hp < 10:
                     self.hp += 1
@@ -239,6 +254,7 @@ class Ski(Game):
                 self.map[(self.player_pos[0], self.player_pos[1])] = self.CRASH
             else:
                 self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+
         else:
             self.map[(self.player_pos[0], self.player_pos[1])] = self.FLY
 
@@ -301,10 +317,15 @@ class Ski(Game):
 
 
     def read_bot_state(self, state):
-        # state.get('foo','')
+        # state.get('foo','') <-- set this to a default value that makes
+        # sense
         # need to get LP values for:
         # s1x-s7x and s1y-s7y
-        None
+        self.sensor_coords = []
+        for i in range(7):
+            x_name = "s" + str(i + 1) + "x"
+            y_name = "s" + str(i + 1) + "y"
+            self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
     def get_vars_for_bot(self):
         bot_vars = {}
@@ -319,25 +340,13 @@ class Ski(Game):
                 "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
                 "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
 
+        print(self.sensor_coords)
+
         bot_vars['hp'] = self.hp
         bot_vars['flying'] = self.flying
 
         x_dir_to_str = {-1: "w", 1: "e", 0: ""}
         y_dir_to_str = {-1: "n", 1: "s", 0: ""}
-
-        # set sensor value to distance to closest bot in range
-        for robot_x, robot_y in robots:
-            dist, direction = self.shortest_distance_and_direction(robot_x, robot_y, self.player_pos[0], self.player_pos[1])
-            if DEBUG:
-                print("dist: %s direction: %s" % (dist, direction))
-            dir_x, dir_y = direction
-            dir_str = y_dir_to_str[dir_y] + x_dir_to_str[dir_x]
-            if dir_str == "":
-                continue
-            if bot_vars["sense_" + dir_str] == 0:
-                bot_vars["sense_" + dir_str] = dist
-            elif bot_vars["sense_" + dir_str] > dist:
-                bot_vars["sense_" + dir_str] = dist
 
         return bot_vars
 
@@ -373,6 +382,7 @@ class Ski(Game):
         elif self.hp <= 0:
             self.running = False
             self.msg_panel += ["You sustained too much damage!"]
+            self.map[(self.player_pos[0], self.player_pos[1])] = self.DEAD
 
         if not self.running:
             self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
