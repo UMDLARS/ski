@@ -38,8 +38,11 @@ class Ski(Game):
     NUM_OF_COINS_START = 1
     NUM_OF_HEARTS_START = 1
     NUM_OF_JUMPS_START = 1
-    MAX_TURNS = 300
+    MAX_TURNS = 500
     MAX_FLYING = 10
+    FLYING_POINTS = 5
+    COIN_POINTS = 25
+
 
     PLAYER = '@'
     EMPTY = '\0'
@@ -63,7 +66,7 @@ class Ski(Game):
         self.colliding = False
         self.on_top_of = None # stores a map item we're "on top of"
         self.flying = 0 # set to some value and decrement (0 == on ground)
-        self.hp = 3
+        self.hp = 1
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
         self.score = 0
         self.objects = []
@@ -88,7 +91,23 @@ class Ski(Game):
         self.place_objects(self.COIN, self.NUM_OF_COINS_START)
         self.place_objects(self.HEART, self.NUM_OF_HEARTS_START)
         self.place_objects(self.JUMP, self.NUM_OF_JUMPS_START)
+
+        # make a clearing for the player
+        for y in range(8):
+            for x in range(self.MAP_WIDTH):
+                self.map[(x, self.MAP_HEIGHT - 1 - y)] = self.EMPTY
+
+        # place player
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+
+        # place decorative trees
+        self.map[(self.player_pos[0] + 5, self.player_pos[1])] = self.TREE
+        self.map[(self.player_pos[0] - 5, self.player_pos[1])] = self.TREE
+
+        # place initial hearts
+        self.map[(self.player_pos[0], self.player_pos[1] - 1)] = self.HEART
+        self.map[(self.player_pos[0], self.player_pos[1] - 2)] = self.HEART
+
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
 
@@ -127,6 +146,10 @@ class Ski(Game):
         if self.random.randint(0, 100) > 33:
             self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.JUMP
 
+        if self.random.randint(0, 500) == 1:
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.HOUSE
+            print("I made a house!")
+
     def shift_map(self):
         # shift all rows down
         dx = (self.MAP_WIDTH / 2) - self.player_pos[0]
@@ -143,12 +166,14 @@ class Ski(Game):
 
     def handle_key(self, key):
         self.turns += 1
-        self.score += 1
         if self.flying > 0:
+            self.score += self.FLYING_POINTS
             self.flying -= 1
             self.msg_panel += ["In flight for " + str(self.flying) + " turns..."]
             if self.flying == 0:
                 self.msg_panel += ["Back on the ground!"]
+        else:
+            self.score += 1
 
         if self.turns % 30 == 0:
             self.level += 1
@@ -176,40 +201,61 @@ class Ski(Game):
         self.colliding = False  # reset colliding variable
         self.on_top_of = None
 
-        if self.flying == 0:
-            # check for various types of collisions (good and bad)
-            if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
+        # check for various types of collisions (good and bad)
+        if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
+            self.on_top_of = self.ROCK
+            if self.flying == 0:
                 self.colliding = True
-                self.on_top_of = self.ROCK
                 self.hp -= 10
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
+            self.on_top_of = self.TREE
+            if self.flying == 0:
                 self.colliding = True
-                self.on_top_of = self.TREE
                 self.hp -= 2
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SNOWMAN:
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SNOWMAN:
+            if self.flying == 0:
                 self.colliding = True
                 self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            else:
+                self.on_top_of = self.SNOWMAN # flying over snowmen is nondestructive
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
+            if self.flying == 0:
                 if self.hp < 10:
                     self.hp += 1
                     self.msg_panel += [self.random.choice(list(set(self.ROBOT_HEART_RESPONSES) - set(self.msg_panel.get_current_messages())))]
                 else:
                     self.msg_panel += ["Your HP is already full!"]
+            else:
+                self.on_top_of = self.HEART
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.COIN:
-                self.score += 25
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HOUSE:
+            if self.flying == 0:
+                self.hp = 10
+                self.msg_panel += ["This cabin was very refreshing!"]
+            else:
+                self.on_top_of = self.HOUSE
+
+
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.COIN:
+            if self.flying == 0:
+                self.score += self.COIN_POINTS
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            else:
+                self.on_top_of = self.COIN
 
-            elif self.map[(self.player_pos[0], self.player_pos[1])] == self.JUMP:
+        elif self.map[(self.player_pos[0], self.player_pos[1])] == self.JUMP:
+            if self.flying == 0:
                 self.on_top_of = self.JUMP
                 self.flying += self.random.randint(2, self.MAX_FLYING)
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+            else:
+                self.on_top_of = self.JUMP
 
         # draw player
         if self.flying < 1:

@@ -10,9 +10,9 @@ A variety of obstacles stand in your way; hitting them will depete your hitpoint
 
 You can add hitpoints by skiing over a `heart` or through a `house`. 
 
-You can gain extra points by skiing over a `coin`. 
+You can gain 25 extra points by skiing over a `coin`. 
 
-You can fly through the air for a random number of turns by skiing over a rainbow colored `jump`. 
+You can fly through the air for a random number of turns by skiing over a rainbow colored `jump`. Each turn in flight is worth 5 points.
 
 The variable `flying` tells you how many more turns you'll be above the ground (0 means you will hit obstacles).
 
