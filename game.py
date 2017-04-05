@@ -112,20 +112,20 @@ class Ski(Game):
             if here <= self.turns:
                 which = self.random.randint(0, 2)
                 if which == 0:
-                    self.map[(x, 1)] = self.ROCK
+                    self.map[(x, 0)] = self.ROCK
                 elif which == 1:
-                    self.map[(x, 1)] = self.TREE
+                    self.map[(x, 0)] = self.TREE
                 elif which == 2:
-                    self.map[(x, 1)] = self.SNOWMAN
+                    self.map[(x, 0)] = self.SNOWMAN
 
         if self.random.randint(0, 100) > 33:
-            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.HEART
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.HEART
 
         if self.random.randint(0, 100) > 33:
-            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.COIN
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.COIN
 
         if self.random.randint(0, 100) > 33:
-            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.JUMP
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.JUMP
 
     def shift_map(self):
         # shift all rows down
