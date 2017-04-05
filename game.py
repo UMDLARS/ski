@@ -287,12 +287,12 @@ class Ski(Game):
             self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
     def get_vars_for_bot(self):
-        bot_vars = {"jump_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)[0],
-                    "jump_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)[1],
-                    "heart_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)[0],
-                    "heart_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)[1],
-                    "coin_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)[0],
-                    "coin_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)[1],
+        bot_vars = {"jump_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP, default=(0, 0))[0],
+                    "jump_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP, default=(0, 0))[1],
+                    "heart_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART, default=(0, 0))[0],
+                    "heart_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART, default=(0, 0))[1],
+                    "coin_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN, default=(0, 0))[0],
+                    "coin_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN, default=(0, 0))[1],
                     "hp": 0, "flying": 0, "s1": 0, "s2": 0, "s3": 0, "s4": 0, "s5": 0, "s6": 0, "s7": 0}
 
         # go through self.sensor_coords and retrieve the map item at the
