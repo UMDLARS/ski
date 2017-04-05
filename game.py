@@ -1,5 +1,4 @@
 from __future__ import print_function
-import math
 from CYLGame import GameLanguage
 from CYLGame import Game
 from CYLGame import MessagePanel
@@ -107,11 +106,11 @@ class Ski(Game):
                 self.map[(x, y)] = char
                 placed_objects += 1
 
-    def make_new_row(self, level):
+    def make_new_row(self):
         for x in range(self.MAP_WIDTH):
             here = self.random.randint(0, self.MAX_TURNS)
             if here <= self.turns:
-                which = self.random.randint(0,2)
+                which = self.random.randint(0, 2)
                 if which == 0:
                     self.map[(x, 1)] = self.ROCK
                 elif which == 1:
@@ -119,14 +118,14 @@ class Ski(Game):
                 elif which == 2:
                     self.map[(x, 1)] = self.SNOWMAN
 
-        if self.random.randint(0,100) > 33:
-            self.map[(self.random.randint(0,self.MAP_WIDTH - 1), 1)] = self.HEART
+        if self.random.randint(0, 100) > 33:
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.HEART
 
-        if self.random.randint(0,100) > 33:
-            self.map[(self.random.randint(0,self.MAP_WIDTH - 1), 1)] = self.COIN
+        if self.random.randint(0, 100) > 33:
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.COIN
 
-        if self.random.randint(0,100) > 33:
-            self.map[(self.random.randint(0,self.MAP_WIDTH - 1), 1)] = self.JUMP
+        if self.random.randint(0, 100) > 33:
+            self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 1)] = self.JUMP
 
     def shift_map(self):
         # shift all rows down
@@ -134,7 +133,7 @@ class Ski(Game):
         self.map.shift_all((dx, 1), wrap_x=True)
         self.player_pos[0] += dx
 
-        self.make_new_row(self.level)
+        self.make_new_row()
 
         if self.on_top_of:
             self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.on_top_of
@@ -174,7 +173,7 @@ class Ski(Game):
         # shift the map
         self.shift_map()
         
-        self.colliding = False # reset colliding variable
+        self.colliding = False  # reset colliding variable
         self.on_top_of = None
 
         if self.flying == 0:
@@ -242,23 +241,16 @@ class Ski(Game):
             self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
     def get_vars_for_bot(self):
-        bot_vars = {}
-
-        x_dir_to_char = {-1: ord("a"), 1: ord("d"), 0: 0}
-        y_dir_to_char = {-1: ord("w"), 1: ord("s"), 0: 0}
-
-        bot_vars = {"jump_x": 0, "jump_y": 0, "heart_x": 0, "heart_y": 0,
-                "coin_x": 0, "coin_y": 0, "hp": 0, "flying": 0,
-                "s1":0, "s2":0, "s3":0, "s4":0, "s5":0, "s6":0, "s7":0}
-
-        # get x_dir and y_dir to direct player towards COIN / HP
-        bot_vars["heart_x"], bot_vars["heart_y"] = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)
-        bot_vars["jump_x"], bot_vars["jump_y"] = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)
-        bot_vars["coin_x"], bot_vars["coin_y"] = self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)
+        bot_vars = {"jump_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)[0],
+                    "jump_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP)[1],
+                    "heart_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)[0],
+                    "heart_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART)[1],
+                    "coin_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)[0],
+                    "coin_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN)[1],
+                    "hp": 0, "flying": 0, "s1": 0, "s2": 0, "s3": 0, "s4": 0, "s5": 0, "s6": 0, "s7": 0}
 
         # go through self.sensor_coords and retrieve the map item at the
         # position relative to the player
-
         for i in range(7):
             if (i < len(self.sensor_coords)):
                 sensor = "s" + str(i + 1)
@@ -271,9 +263,6 @@ class Ski(Game):
 
         bot_vars['hp'] = self.hp
         bot_vars['flying'] = self.flying
-
-        x_dir_to_str = {-1: "w", 1: "e", 0: ""}
-        y_dir_to_str = {-1: "n", 1: "s", 0: ""}
 
         if DEBUG:
             print(bot_vars)
@@ -293,31 +282,30 @@ class Ski(Game):
     def get_move_consts():
         consts = Game.get_move_consts()
         consts.update({"teleport": ord("t")})
-        consts.update({"heart": 3})
-        consts.update({"heart": 3})
-        consts.update({"coin": 4})
-        consts.update({"rock": 15})
-        consts.update({"spikes": 16})
-        consts.update({"snowman": 17})
-        consts.update({"tracks": 29})
-        consts.update({"tree": 30})
-        consts.update({"jump": 31})
-        consts.update({"house": 10})
+        consts.update({"heart": ord(Ski.HEART)})
+        consts.update({"coin": ord(Ski.COIN)})
+        consts.update({"rock": ord(Ski.ROCK)})
+        consts.update({"spikes": ord(Ski.SPIKE)})
+        consts.update({"snowman": ord(Ski.SNOWMAN)})
+        consts.update({"tracks": ord(Ski.TRACKS)})
+        consts.update({"tree": ord(Ski.TREE)})
+        consts.update({"jump": ord(Ski.JUMP)})
+        consts.update({"house": ord(Ski.HOUSE)})
         return consts
 
     @staticmethod
     def get_move_names():
         names = Game.get_move_names()
         names.update({ord("t"): "teleport"})
-        names.update({3: "heart"})
-        names.update({4: "coin"})
-        names.update({15: "rock"})
-        names.update({16: "spikes"})
-        names.update({17: "snowman"})
-        names.update({29: "tracks"})
-        names.update({30: "tree"})
-        names.update({31: "jump"})
-        names.update({10: "house"})
+        names.update({ord(Ski.HEART): "heart"})
+        names.update({ord(Ski.COIN): "coin"})
+        names.update({ord(Ski.ROCK): "rock"})
+        names.update({ord(Ski.SPIKE): "spikes"})
+        names.update({ord(Ski.SNOWMAN): "snowman"})
+        names.update({ord(Ski.TRACKS): "tracks"})
+        names.update({ord(Ski.TREE): "tree"})
+        names.update({ord(Ski.JUMP): "jump"})
+        names.update({ord(Ski.HOUSE): "house"})
         return names
 
     def get_score(self):
