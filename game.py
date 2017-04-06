@@ -42,6 +42,7 @@ class Ski(Game):
     MAX_FLYING = 10
     FLYING_POINTS = 5
     COIN_POINTS = 25
+    HOUSE_ODDS = 500 # e.g., 1/500
 
 
     PLAYER = '@'
@@ -57,7 +58,7 @@ class Ski(Game):
     DEAD = chr(1)
     FLY = chr(2)
     CRASH = chr(8)
-    HOUSE = chr(10)
+    HOUSE = chr(9)
 
     def __init__(self, random):
         self.sensor_coords = [] # variables for adjustable sensors from LP
@@ -146,7 +147,7 @@ class Ski(Game):
         if self.random.randint(0, 100) > 33:
             self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.JUMP
 
-        if self.random.randint(0, 500) == 1:
+        if self.random.randint(0, self.HOUSE_ODDS) == 1:
             self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.HOUSE
             print("I made a house!")
 
