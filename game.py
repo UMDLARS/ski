@@ -65,7 +65,8 @@ class Ski(Game):
         self.random = random
         self.running = True
         self.colliding = False
-        self.on_top_of = None # stores a map item we're "on top of"
+        self.saved_object = None # stores a map item we're "on top of"
+        self.last_move = 'w' # need this to restore objects
         self.flying = 0 # set to some value and decrement (0 == on ground)
         self.hp = 1
         self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
@@ -151,6 +152,33 @@ class Ski(Game):
             self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.HOUSE
             print("I made a house!")
 
+    def save_object(self, obj):
+        self.saved_object = obj
+
+    def restore_object_tracks(self):
+
+        # restore an object you went over
+        # or make tracks if on the ground
+        # where should the object be restored?
+
+        y = 1 # it's always going to be behind us
+        
+        if self.last_move == 'a':
+            x = 1
+        elif self.last_move == 'd':
+            x = -1
+        elif self.last_move == 'w':
+            x = 0
+
+        if self.saved_object:
+            self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] = self.saved_object
+            self.saved_object = None
+        else:
+            if self.flying < 1:
+                if self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] == self.EMPTY:
+                    self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] = self.TRACKS
+
+
     def shift_map(self):
         # shift all rows down
         dx = (self.MAP_WIDTH / 2) - self.player_pos[0]
@@ -159,11 +187,7 @@ class Ski(Game):
 
         self.make_new_row()
 
-        if self.on_top_of:
-            self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.on_top_of
-        elif self.flying < 1:
-            if self.map[(self.player_pos[0], self.player_pos[1] + 1)] == self.EMPTY:
-                self.map[(self.player_pos[0], self.player_pos[1] + 1)] = self.TRACKS
+        self.restore_object_tracks()
 
     def handle_key(self, key):
         self.turns += 1
@@ -196,22 +220,23 @@ class Ski(Game):
             self.running = False
             return
 
+        self.last_move = key # save last move for saved_object restoration
+
         # shift the map
         self.shift_map()
         
         self.colliding = False  # reset colliding variable
-        self.on_top_of = None
 
         # check for various types of collisions (good and bad)
         if self.map[(self.player_pos[0], self.player_pos[1])] == self.ROCK:
-            self.on_top_of = self.ROCK
+            self.save_object(self.ROCK)
             if self.flying == 0:
                 self.colliding = True
                 self.hp -= 10
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
-            self.on_top_of = self.TREE
+            self.save_object(self.TREE)
             if self.flying == 0:
                 self.colliding = True
                 self.hp -= 2
@@ -223,7 +248,7 @@ class Ski(Game):
                 self.hp -= 1
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             else:
-                self.on_top_of = self.SNOWMAN # flying over snowmen is nondestructive
+                self.save_object(self.SNOWMAN) # flying over snowmen is nondestructive
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HEART:
             if self.flying == 0:
@@ -233,14 +258,14 @@ class Ski(Game):
                 else:
                     self.msg_panel += ["Your HP is already full!"]
             else:
-                self.on_top_of = self.HEART
+                self.save_object(self.HEART)
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HOUSE:
             if self.flying == 0:
                 self.hp = 10
                 self.msg_panel += ["This cabin was very refreshing!"]
             else:
-                self.on_top_of = self.HOUSE
+                self.save_object(self.HOUSE)
 
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.COIN:
@@ -248,15 +273,15 @@ class Ski(Game):
                 self.score += self.COIN_POINTS
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             else:
-                self.on_top_of = self.COIN
+                self.save_object(self.COIN)
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.JUMP:
             if self.flying == 0:
-                self.on_top_of = self.JUMP
+                self.save_object(self.JUMP)
                 self.flying += self.random.randint(2, self.MAX_FLYING)
                 self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
             else:
-                self.on_top_of = self.JUMP
+                self.save_object(self.JUMP)
 
         # draw player
         if self.flying < 1:
