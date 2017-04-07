@@ -107,8 +107,8 @@ class Ski(Game):
         self.map[(self.player_pos[0] - 5, self.player_pos[1])] = self.TREE
 
         # place initial hearts
-        self.map[(self.player_pos[0], self.player_pos[1] - 1)] = self.HEART
         self.map[(self.player_pos[0], self.player_pos[1] - 2)] = self.HEART
+        self.map[(self.player_pos[0], self.player_pos[1] - 3)] = self.HEART
 
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
