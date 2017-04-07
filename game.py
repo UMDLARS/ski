@@ -150,18 +150,17 @@ class Ski(Game):
 
         if self.random.randint(0, self.HOUSE_ODDS) == 1:
             self.map[(self.random.randint(0, self.MAP_WIDTH - 1), 0)] = self.HOUSE
-            print("I made a house!")
 
     def save_object(self, obj):
         self.saved_object = obj
 
     def restore_object_tracks(self):
 
-        # restore an object you went over
-        # or make tracks if on the ground
-        # where should the object be restored?
+        # restore an object you went over or make tracks
 
+        # where should the object be restored?
         y = 1 # it's always going to be behind us
+        x = 0 # we will set the x value accordingly
         
         if self.last_move == 'a':
             x = 1
@@ -171,8 +170,18 @@ class Ski(Game):
             x = 0
 
         if self.saved_object:
-            self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] = self.saved_object
-            self.saved_object = None
+            if self.last_move == 't':
+                # if the player previously teleported when on an
+                # obstacle, just destroy the obstacle. We can't put it
+                # back where it was because we don't know (x, y) for the
+                # player due to map shifting, and we can't draw it under
+                # us or we will collide with it twice!
+                self.msg_panel += ["Teleporting destroyed the object!"]
+                self.saved_object = None
+            else:
+                # if the player didn't teleport, put object back
+                self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] = self.saved_object
+                self.saved_object = None
         else:
             if self.flying < 1:
                 if self.map[(self.player_pos[0] + x, self.player_pos[1] + y)] == self.EMPTY:
