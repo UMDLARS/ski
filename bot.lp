@@ -3,7 +3,8 @@
 # VALID MOVES: east, west, north, or teleport (costs 1 HP). Any invalid move will be taken as no move.
 # SENSOR TYPES: "distance to" and point sensors
 # DISTANCE TO: show distance from YOU to closest item of some type.
-#   heart_x, heart_y, coin_x, coin_y, jump_x, jump_y (negative is north or west!)
+#   heart_x, heart_y, coin_x, coin_y, jump_x, jump_y, house_x, house_y
+#   Note: negative values represent north or west!
 # POINT SENSORS: s1-s7 return value of item over a configurable location
 #   Set value of sNx and sNy (where N = 1-7) as offsets from player location; test value of sN to know what is at that point. Value 0 means empty (snow). Other values include: coin, heart, jump, rock, tree, snowman.
 # OTHER VARS: hp: your hitpoints (max 10); flying: air time after jump

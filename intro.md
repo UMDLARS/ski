@@ -6,7 +6,7 @@ You're a robot skiing in the woods! Turn left or right to avoid obstacles. Don't
 
 Every turn you will move downhill one row and earn a point. You decide whether to go left, right, or stay straight ahead. 
 
-A variety of obstacles stand in your way; hitting them will depete your hitpoints (available in the var `hp`). Hitting a `snowman` costs 1 point. Hitting a `tree` costs 2 points. Hitting a `rock` costs 10 points.
+A variety of obstacles stand in your way; hitting them will deplete your hitpoints (available in the var `hp`). Hitting a `snowman` costs 1 point. Hitting a `tree` costs 2 points. Hitting a `rock` costs 10 points.
 
 You can add hitpoints by skiing over a `heart` or through a `house`.  Houses are extremely rare.
 
@@ -38,7 +38,7 @@ Your robot has access to two internal variables:
 
 Distance sensors tell you the `x` and `y` distance to the closest heart (`heart_x` and `heart_y`), coin (`coin_x` and `coin_y`), jump (`jump_x` and `jump_y`), or house (`house_x` and `house_y`). Just because it is the closest doesn't mean you can get to it. If there is no object in question (e.g., no house on the map) the sensors are set to `0`.
 
-For historical reasons, the coordinates (0,0) represent the upper-left corner of the screen in many graphics applications. This means that a negative `object_x` value means the object is to your left (west) and a negative `object_y` value means the object is ahead of your (to the north).
+For historical reasons, the coordinates (0,0) represent the upper-left corner of the screen in many graphics applications. This means that a negative `object_x` value means the object is to your left (west) and a negative `object_y` value means the object is ahead of you (to the north).
 
 ## Configurable point sensors
 
