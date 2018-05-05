@@ -394,7 +394,7 @@ class Ski(Game):
     def get_score(self):
         return self.score
 
-    def draw_screen(self, libtcod, console):
+    def draw_screen(self, frame_buffer):
         # End of the game
         if self.turns >= self.MAX_TURNS:
             self.running = False
@@ -407,15 +407,13 @@ class Ski(Game):
         if not self.running:
             self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
 
-        libtcod.console_set_default_foreground(console, libtcod.white)
-
         # Update Status
         self.status_panel["Score"] = self.score
         self.status_panel["Move"] = str(self.turns) + " of " + str(self.MAX_TURNS)
         self.status_panel["HP"] = self.HEART * self.hp
 
         for panel in self.panels:
-            panel.redraw(libtcod, console)
+            panel.redraw(frame_buffer)
 
 
 if __name__ == '__main__':
