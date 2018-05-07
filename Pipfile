@@ -11,6 +11,8 @@ pytest = "*"
 ipython = "*"
 pygame = "*"
 "e1839a8" = {path = ".", editable = true}
+pytest-runner = "*"
+pytest-cov = "*"
 
 
 [packages]
