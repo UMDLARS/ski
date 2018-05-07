@@ -1,16 +1,19 @@
 from __future__ import print_function
 from CYLGame import GameLanguage
-from CYLGame import Game
+from CYLGame import GridGame
 from CYLGame import MessagePanel
 from CYLGame import MapPanel
 from CYLGame import StatusPanel
 from CYLGame import PanelBorder
+from CYLGame.Player import DefaultGridPlayer
+from CYLGame.Game import ConstMapping
+
 
 
 DEBUG = False
 
 
-class Ski(Game):
+class Ski(GridGame):
     MAP_WIDTH = 60
     MAP_HEIGHT = 30
     SCREEN_WIDTH = 60
@@ -69,7 +72,7 @@ class Ski(Game):
         self.last_move = 'w' # need this to restore objects
         self.flying = 0 # set to some value and decrement (0 == on ground)
         self.hp = 1
-        self.player_pos = [self.MAP_WIDTH / 2, self.MAP_HEIGHT - 4]
+        self.player_pos = [int(self.MAP_WIDTH / 2), self.MAP_HEIGHT - 4]
         self.score = 0
         self.objects = []
         self.turns = 0
@@ -99,9 +102,6 @@ class Ski(Game):
             for x in range(self.MAP_WIDTH):
                 self.map[(x, self.MAP_HEIGHT - 1 - y)] = self.EMPTY
 
-        # place player
-        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
-
         # place decorative trees
         self.map[(self.player_pos[0] + 5, self.player_pos[1])] = self.TREE
         self.map[(self.player_pos[0] - 5, self.player_pos[1])] = self.TREE
@@ -112,6 +112,20 @@ class Ski(Game):
 
         if DEBUG:
             print(self.get_vars_for_bot())  # need sensors before turn
+
+    def init_board(self):
+        pass
+
+    def create_new_player(self, prog):
+        self.player = DefaultGridPlayer(prog, self.get_move_consts())
+        # place player
+        self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
+        
+        self.update_vars_for_player()
+        return self.player
+
+    def start_game(self):
+        pass
 
     def place_objects(self, char, count, replace=False):
         placed_objects = 0
@@ -190,13 +204,17 @@ class Ski(Game):
 
     def shift_map(self):
         # shift all rows down
-        dx = (self.MAP_WIDTH / 2) - self.player_pos[0]
+        dx = int(self.MAP_WIDTH / 2) - self.player_pos[0]
         self.map.shift_all((dx, 1), wrap_x=True)
         self.player_pos[0] += dx
 
         self.make_new_row()
 
         self.restore_object_tracks()
+
+    def do_turn(self):
+        self.handle_key(self.player.move)
+        self.update_vars_for_player()
 
     def handle_key(self, key):
         self.turns += 1
@@ -302,6 +320,14 @@ class Ski(Game):
         else:
             self.map[(self.player_pos[0], self.player_pos[1])] = self.FLY
 
+        # Check for game-ending state:
+        if self.turns >= self.MAX_TURNS:
+            self.running = False
+        elif self.hp <= 0:
+            self.running = False
+            self.map[(self.player_pos[0], self.player_pos[1])] = self.DEAD
+
+
         # vars should be gotten at the end of handle_turn, because vars
         # affect the *next* turn...
         if DEBUG:
@@ -321,7 +347,17 @@ class Ski(Game):
             y_name = "s" + str(i + 1) + "y"
             self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
-    def get_vars_for_bot(self):
+    def get_map_array_tuple(self):
+        map_arr = []
+        for w in range(0, self.MAP_WIDTH):
+            w_arr = []
+            for h in range(0, self.MAP_HEIGHT):
+                w_arr.append(ord(self.map.p_to_char[(w, h)]))
+            map_arr.append(tuple(w_arr))
+
+        return tuple(map_arr)
+
+    def update_vars_for_player(self):
         bot_vars = {"jump_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP, default=(0, 0))[0],
                     "jump_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.JUMP, default=(0, 0))[1],
                     "heart_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HEART, default=(0, 0))[0],
@@ -330,6 +366,8 @@ class Ski(Game):
                     "coin_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.COIN, default=(0, 0))[1],
                     "house_x": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HOUSE, default=(0, 0))[0],
                     "house_y": self.map.get_x_y_dist_to_foo(tuple(self.player_pos), self.HOUSE, default=(0, 0))[1],
+                    "map_width": self.MAP_WIDTH,
+                    "map_height": self.MAP_HEIGHT,
                     "hp": 0, "flying": 0, "s1": 0, "s2": 0, "s3": 0, "s4": 0, "s5": 0, "s6": 0, "s7": 0}
 
         # go through self.sensor_coords and retrieve the map item at the
@@ -346,11 +384,13 @@ class Ski(Game):
 
         bot_vars['hp'] = self.hp
         bot_vars['flying'] = self.flying
+        bot_vars['map_array'] = self.get_map_array_tuple()
 
         if DEBUG:
             print(bot_vars)
 
-        return bot_vars
+        self.player.bot_vars = bot_vars
+        #return bot_vars
 
     @staticmethod
     def default_prog_for_bot(language):
@@ -363,18 +403,17 @@ class Ski(Game):
 
     @staticmethod
     def get_move_consts():
-        consts = Game.get_move_consts()
-        consts.update({"teleport": ord("t")})
-        consts.update({"heart": ord(Ski.HEART)})
-        consts.update({"coin": ord(Ski.COIN)})
-        consts.update({"rock": ord(Ski.ROCK)})
-        consts.update({"spikes": ord(Ski.SPIKE)})
-        consts.update({"snowman": ord(Ski.SNOWMAN)})
-        consts.update({"tracks": ord(Ski.TRACKS)})
-        consts.update({"tree": ord(Ski.TREE)})
-        consts.update({"jump": ord(Ski.JUMP)})
-        consts.update({"house": ord(Ski.HOUSE)})
-        return consts
+        return ConstMapping({"teleport": ord("t"),
+                            "heart": ord(Ski.HEART),
+                            "coin": ord(Ski.COIN),
+                            "rock": ord(Ski.ROCK),
+                            "spikes": ord(Ski.SPIKE),
+                            "snowman": ord(Ski.SNOWMAN),
+                            "tracks": ord(Ski.TRACKS),
+                            "tree": ord(Ski.TREE),
+                            "jump": ord(Ski.JUMP),
+                            "house": ord(Ski.HOUSE),
+                            })
 
     @staticmethod
     def get_move_names():
@@ -397,12 +436,9 @@ class Ski(Game):
     def draw_screen(self, frame_buffer):
         # End of the game
         if self.turns >= self.MAX_TURNS:
-            self.running = False
             self.msg_panel.add("You are out of moves.")
         elif self.hp <= 0:
-            self.running = False
             self.msg_panel += ["You sustained too much damage!"]
-            self.map[(self.player_pos[0], self.player_pos[1])] = self.DEAD
 
         if not self.running:
             self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
