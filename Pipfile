@@ -7,12 +7,15 @@ name = "pypi"
 
 [dev-packages]
 
+pytest = "*"
+ipython = "*"
+pygame = "*"
+"e1839a8" = {path = ".", editable = true}
 
 
 [packages]
 
 cylgame = "==1.6.*"
-pygame = "*"
 
 
 [requires]
