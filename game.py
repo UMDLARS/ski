@@ -10,7 +10,7 @@ from CYLGame.Game import ConstMapping
 
 
 
-DEBUG = False
+DEBUG = True
 
 
 class Ski(GridGame):
@@ -24,6 +24,7 @@ class Ski(GridGame):
     CHAR_HEIGHT = 16
     GAME_TITLE = "Ski"
     CHAR_SET = "terminal16x16_gs_ro.png"
+    NUM_OF_SENSORS = 8
 
     SENSE_DIST = 20
 
@@ -110,14 +111,26 @@ class Ski(GridGame):
         self.map[(self.player_pos[0], self.player_pos[1] - 2)] = self.HEART
         self.map[(self.player_pos[0], self.player_pos[1] - 3)] = self.HEART
 
-        if DEBUG:
-            print(self.get_vars_for_bot())  # need sensors before turn
-
     def init_board(self):
         pass
 
+    def read_bot_state(self, state):
+        # state.get('foo','') <-- set this to a default value that makes
+        # sense
+        # need to get LP values for:
+        # s1x-s7x and s1y-s7y
+        self.sensor_coords = []
+        for i in range(self.NUM_OF_SENSORS):
+            x_name = "s" + str(i + 1) + "x"
+            y_name = "s" + str(i + 1) + "y"
+            self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
+
     def create_new_player(self, prog):
         self.player = DefaultGridPlayer(prog, self.get_move_consts())
+        
+        # hacking in player state for new framework -- pahp
+        self.player.update_state = self.read_bot_state
+
         # place player
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         
@@ -231,6 +244,7 @@ class Ski(GridGame):
             self.level += 1
 
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
+
         if key == "a":
             self.player_pos[0] -= 1
         if key == "d":
@@ -246,6 +260,9 @@ class Ski(GridGame):
         if key == "Q":
             self.running = False
             return
+
+        if (DEBUG):
+            print ("Key was: %s turn #%d" % (key, self.turns))
 
         self.last_move = key # save last move for saved_object restoration
 
@@ -328,24 +345,8 @@ class Ski(GridGame):
             self.map[(self.player_pos[0], self.player_pos[1])] = self.DEAD
 
 
-        # vars should be gotten at the end of handle_turn, because vars
-        # affect the *next* turn...
-        if DEBUG:
-            print(self.get_vars_for_bot())
-
     def is_running(self):
         return self.running
-
-    def read_bot_state(self, state):
-        # state.get('foo','') <-- set this to a default value that makes
-        # sense
-        # need to get LP values for:
-        # s1x-s7x and s1y-s7y
-        self.sensor_coords = []
-        for i in range(7):
-            x_name = "s" + str(i + 1) + "x"
-            y_name = "s" + str(i + 1) + "y"
-            self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
     def get_map_array_tuple(self):
         map_arr = []
@@ -372,13 +373,19 @@ class Ski(GridGame):
 
         # go through self.sensor_coords and retrieve the map item at the
         # position relative to the player
-        for i in range(7):
+        for i in range(self.NUM_OF_SENSORS):
             if (i < len(self.sensor_coords)):
                 sensor = "s" + str(i + 1)
                 x_offset = self.sensor_coords[i][0]
                 y_offset = self.sensor_coords[i][1]
 
+
                 bot_vars[sensor] = ord(self.map[(self.player_pos[0] + int(x_offset), self.player_pos[1] + int(y_offset))])
+                
+                if (DEBUG):
+                    print("sensor: %s - i: %d - x_off: %s y_off: %s content: %s" % (sensor, i, x_offset, y_offset, bot_vars[sensor]))
+
+
                 if bot_vars[sensor] == 64:
                     bot_vars[sensor] = 0
 
@@ -387,10 +394,22 @@ class Ski(GridGame):
         bot_vars['map_array'] = self.get_map_array_tuple()
 
         if DEBUG:
-            print(bot_vars)
+            print("Printing bot_vars:")
+            for key in bot_vars.keys():
+                if key != "map_array":
+                    print("%s ==> %s" % (key, bot_vars[key]))
+                else:
+                    # sort of pretty print the map
+                    for rownum in range(len(bot_vars['map_array'])):
+                        print("%02d: " % (rownum), end='')
+                        for val in bot_vars['map_array'][rownum]:
+                            print("%02d " % (val), end='')
+                        print("")
+                    print("Note: map printed sideways for terminal readability (bottom on right)")
+                    print("Note: robot already dead in last frame -- 2nd to last more useful!")
+                    print("")
 
         self.player.bot_vars = bot_vars
-        #return bot_vars
 
     @staticmethod
     def default_prog_for_bot(language):
@@ -404,6 +423,8 @@ class Ski(GridGame):
     @staticmethod
     def get_move_consts():
         return ConstMapping({"teleport": ord("t"),
+                            "west": ord("a"),
+                            "east": ord("d"),
                             "heart": ord(Ski.HEART),
                             "coin": ord(Ski.COIN),
                             "rock": ord(Ski.ROCK),
@@ -419,6 +440,8 @@ class Ski(GridGame):
     def get_move_names():
         names = Game.get_move_names()
         names.update({ord("t"): "teleport"})
+        names.update({ord("d"): "east"})
+        names.update({ord("a"): "west"})
         names.update({ord(Ski.HEART): "heart"})
         names.update({ord(Ski.COIN): "coin"})
         names.update({ord(Ski.ROCK): "rock"})
