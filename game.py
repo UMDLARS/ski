@@ -11,7 +11,9 @@ from CYLGame.Game import ConstMapping
 
 
 
-DEBUG = True
+DEBUG = False
+
+
 class SkiPlayer(DefaultGridPlayer):
     def __init__(self, prog, bot_consts, sensors):
         super(SkiPlayer, self).__init__(prog, bot_consts)
