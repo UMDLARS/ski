@@ -12,7 +12,19 @@ from CYLGame.Game import ConstMapping
 
 
 DEBUG = True
-
+class SkiPlayer(DefaultGridPlayer):
+    def __init__(self, prog, bot_consts, sensors):
+        super(SkiPlayer, self).__init__(prog, bot_consts)
+        self.sensor_coords = []
+        self.NUM_OF_SENSORS = sensors
+    
+    def update_state(self, state):
+        super(SkiPlayer, self).update_state(state)
+        self.sensor_coords = []
+        for i in range(self.NUM_OF_SENSORS):
+            x_name = "s" + str(i + 1) + "x"
+            y_name = "s" + str(i + 1) + "y"
+            self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
 
 class Ski(GridGame):
     MAP_WIDTH = 60
@@ -115,23 +127,8 @@ class Ski(GridGame):
     def init_board(self):
         pass
 
-    def read_bot_state(self, default_grid_player, state):
-        # state.get('foo','') <-- set this to a default value that makes
-        # sense
-        # need to get LP values for:
-        # s1x-s7x and s1y-s7y
-        self.sensor_coords = []
-        for i in range(self.NUM_OF_SENSORS):
-            x_name = "s" + str(i + 1) + "x"
-            y_name = "s" + str(i + 1) + "y"
-            self.sensor_coords.append((state.get(x_name, "0"), state.get(y_name, "0")))
-
     def create_new_player(self, prog):
-        self.player = DefaultGridPlayer(prog, self.get_move_consts())
-        
-        # hacking in player state for new framework -- pahp
-        self.player.update_state = types.MethodType(self.read_bot_state, self.player)
-
+        self.player = SkiPlayer(prog, self.get_move_consts(), self.NUM_OF_SENSORS)
         # place player
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
         
@@ -231,6 +228,9 @@ class Ski(GridGame):
         self.update_vars_for_player()
 
     def handle_key(self, key):
+        if(DEBUG):
+            print("Move {}".format(self.player.move))
+            print("Key {}".format(key))
         self.turns += 1
         if self.flying > 0:
             self.score += self.FLYING_POINTS
@@ -243,7 +243,8 @@ class Ski(GridGame):
 
         if self.turns % 30 == 0:
             self.level += 1
-
+        if(DEBUG):
+            print("player_pos[0] {} player_pos[1] {}".format(self.player_pos[0], self.player_pos[1]))
         self.map[(self.player_pos[0], self.player_pos[1])] = self.EMPTY
 
         if key == "a":
