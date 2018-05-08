@@ -78,7 +78,6 @@ class Ski(GridGame):
     HOUSE = chr(9)
 
     def __init__(self, random):
-        self.sensor_coords = [] # variables for adjustable sensors from LP
         self.random = random
         self.running = True
         self.colliding = False
@@ -376,10 +375,10 @@ class Ski(GridGame):
         # go through self.sensor_coords and retrieve the map item at the
         # position relative to the player
         for i in range(self.NUM_OF_SENSORS):
-            if (i < len(self.sensor_coords)):
+            if (i < len(self.player.sensor_coords)):
                 sensor = "s" + str(i + 1)
-                x_offset = self.sensor_coords[i][0]
-                y_offset = self.sensor_coords[i][1]
+                x_offset = self.player.sensor_coords[i][0]
+                y_offset = self.player.sensor_coords[i][1]
 
 
                 bot_vars[sensor] = ord(self.map[(self.player_pos[0] + int(x_offset), self.player_pos[1] + int(y_offset))])
