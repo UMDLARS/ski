@@ -1,4 +1,5 @@
 from __future__ import print_function
+import types
 from CYLGame import GameLanguage
 from CYLGame import GridGame
 from CYLGame import MessagePanel
@@ -114,7 +115,7 @@ class Ski(GridGame):
     def init_board(self):
         pass
 
-    def read_bot_state(self, state):
+    def read_bot_state(self, default_grid_player, state):
         # state.get('foo','') <-- set this to a default value that makes
         # sense
         # need to get LP values for:
@@ -129,7 +130,7 @@ class Ski(GridGame):
         self.player = DefaultGridPlayer(prog, self.get_move_consts())
         
         # hacking in player state for new framework -- pahp
-        self.player.update_state = self.read_bot_state
+        self.player.update_state = types.MethodType(self.read_bot_state, self.player)
 
         # place player
         self.map[(self.player_pos[0], self.player_pos[1])] = self.PLAYER
