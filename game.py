@@ -61,7 +61,7 @@ class Ski(GridGame):
     MAX_FLYING = 10
     FLYING_POINTS = 5
     COIN_POINTS = 25
-    HOUSE_ODDS = 500 # e.g., 1/500
+    HOUSE_ODDS = 500  # e.g., 1/500
 
 
     PLAYER = '@'
@@ -202,7 +202,7 @@ class Ski(GridGame):
                 # back where it was because we don't know (x, y) for the
                 # player due to map shifting, and we can't draw it under
                 # us or we will collide with it twice!
-                self.msg_panel += ["Teleporting destroyed the object!"]
+                self.msg_panel.add("Teleporting destroyed the object!")
                 self.saved_object = None
             else:
                 # if the player didn't teleport, put object back
@@ -236,9 +236,9 @@ class Ski(GridGame):
         if self.flying > 0:
             self.score += self.FLYING_POINTS
             self.flying -= 1
-            self.msg_panel += ["In flight for " + str(self.flying) + " turns..."]
+            self.msg_panel.add("In flight for " + str(self.flying) + " turns...")
             if self.flying == 0:
-                self.msg_panel += ["Back on the ground!"]
+                self.msg_panel.add("Back on the ground!")
         else:
             self.score += 1
 
@@ -256,7 +256,7 @@ class Ski(GridGame):
             pass
         if key == "t":
             # horizontal-only teleporting code
-            self.msg_panel += ["TELEPORT! (-1 HP)"]
+            self.msg_panel.add("TELEPORT! (-1 HP)")
             self.hp -= 1
             self.player_pos[0] = self.random.randint(0, self.MAP_WIDTH - 1)
 
@@ -280,20 +280,20 @@ class Ski(GridGame):
             if self.flying == 0:
                 self.colliding = True
                 self.hp -= 10
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                self.msg_panel.add(self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages()))))
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.TREE:
             self.save_object(self.TREE)
             if self.flying == 0:
                 self.colliding = True
                 self.hp -= 2
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                self.msg_panel.add(self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages()))))
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.SNOWMAN:
             if self.flying == 0:
                 self.colliding = True
                 self.hp -= 1
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                self.msg_panel.add(self.random.choice(list(set(self.ROBOT_CRASH_RESPONSES) - set(self.msg_panel.get_current_messages()))))
             else:
                 self.save_object(self.SNOWMAN) # flying over snowmen is nondestructive
 
@@ -301,16 +301,16 @@ class Ski(GridGame):
             if self.flying == 0:
                 if self.hp < 10:
                     self.hp += 1
-                    self.msg_panel += [self.random.choice(list(set(self.ROBOT_HEART_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                    self.msg_panel.add(self.random.choice(list(set(self.ROBOT_HEART_RESPONSES) - set(self.msg_panel.get_current_messages()))))
                 else:
-                    self.msg_panel += ["Your HP is already full!"]
+                    self.msg_panel.add("Your HP is already full!")
             else:
                 self.save_object(self.HEART)
 
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.HOUSE:
             if self.flying == 0:
                 self.hp = 10
-                self.msg_panel += ["This cabin was very refreshing!"]
+                self.msg_panel.add("This cabin was very refreshing!")
             else:
                 self.save_object(self.HOUSE)
 
@@ -318,7 +318,7 @@ class Ski(GridGame):
         elif self.map[(self.player_pos[0], self.player_pos[1])] == self.COIN:
             if self.flying == 0:
                 self.score += self.COIN_POINTS
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                self.msg_panel.add(self.random.choice(list(set(self.ROBOT_COIN_RESPONSES) - set(self.msg_panel.get_current_messages()))))
             else:
                 self.save_object(self.COIN)
 
@@ -326,7 +326,7 @@ class Ski(GridGame):
             if self.flying == 0:
                 self.save_object(self.JUMP)
                 self.flying += self.random.randint(2, self.MAX_FLYING)
-                self.msg_panel += [self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages())))]
+                self.msg_panel.add(self.random.choice(list(set(self.ROBOT_FLYING_RESPONSES) - set(self.msg_panel.get_current_messages()))))
             else:
                 self.save_object(self.JUMP)
 
@@ -464,10 +464,10 @@ class Ski(GridGame):
         if self.turns >= self.MAX_TURNS:
             self.msg_panel.add("You are out of moves.")
         elif self.hp <= 0:
-            self.msg_panel += ["You sustained too much damage!"]
+            self.msg_panel.add("You sustained too much damage!")
 
         if not self.running:
-            self.msg_panel += ["GAME 0VER: Score:" + str(self.score)]
+            self.msg_panel.add("GAME 0VER: Score:" + str(self.score))
 
         # Update Status
         self.status_panel["Score"] = self.score
