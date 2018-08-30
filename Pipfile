@@ -18,6 +18,8 @@ pytest-cov = "*"
 [packages]
 
 cylgame = "==1.6.*"
+greenlet = {version = "*", platform_python_implementation="=='CPython'"}
+
 
 
 [requires]
